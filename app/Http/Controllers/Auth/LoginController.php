@@ -7,6 +7,10 @@ use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Socialite;
 
+/**
+ * Class LoginController
+ * @package App\Http\Controllers\Auth
+ */
 class LoginController extends Controller
 {
     /*
@@ -27,16 +31,21 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
+    /**
+     * @var User
+     */
+    protected $user;
 
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param User $user
      */
-    public function __construct()
+    public function __construct(User $user)
     {
         $this->middleware('guest', ['except' => 'logout']);
+        $this->user = $user;
     }
 
     /**
@@ -61,10 +70,10 @@ class LoginController extends Controller
         } catch (\Exception $exception) {
             return redirect('/');
         }
-        $user = User::where('facebook_id', $facebookUser->getId())->first();
+        $user = $this->user->where('facebook_id', $facebookUser->getId())->first();
 
         if (!$user) {
-            $user = User::create([
+            $user = $this->user->create([
                 'facebook_id' => $facebookUser->getId(),
                 'name'        => $facebookUser->getName(),
                 'email'       => $facebookUser->getEmail(),
@@ -73,6 +82,6 @@ class LoginController extends Controller
 
         auth()->login($user);
 
-        return redirect('/');
+        return redirect($this->redirectTo);
     }
 }
